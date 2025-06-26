@@ -2,16 +2,39 @@
 
 A robust RESTful API built with Express.js, TypeScript, and TypeORM, following best practices for scalability and maintainability.
 
-## Features
+## Development Priorities
 
-- TypeScript for type safety
-- Express.js for the web framework
-- TypeORM for database operations
-- MySQL database support
-- Environment configuration
-- Request validation
-- Error handling
-- CORS enabled
+### Completed
+- [x] Basic CRUD operations
+- [x] Database setup (TypeORM + MySQL)
+- [x] API response formatting
+- [x] Environment configuration
+
+### In Progress
+- [ ] Input Validation
+  - [ ] Enhance update operation validation
+  - [ ] Add query parameter validation
+  - [ ] Validate email format
+  - [ ] Add password strength requirements
+
+- [ ] Error Handling
+  - [ ] More specific error messages
+  - [ ] Handle duplicate email errors
+  - [ ] Add error codes for different scenarios
+  - [ ] Improve validation error responses
+
+### Next Up
+- [ ] Security
+  - [ ] JWT Authentication
+  - [ ] Password hashing (bcrypt)
+  - [ ] Protected routes
+  - [ ] Rate limiting
+
+- [ ] API Improvements
+  - [ ] Add search functionality
+  - [ ] Implement filtering
+  - [ ] Add sorting options
+  - [ ] Response caching
 
 ## Prerequisites
 
