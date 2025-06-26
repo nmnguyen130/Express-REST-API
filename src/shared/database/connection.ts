@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import { AppDataSource } from '../config/database.config';
+import { AppDataSource } from '@/shared/config/database.config';
 
 export const connectDB = async () => {
   try {

@@ -3,7 +3,6 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from '@/modules/users/entities/user.entity';
 
 import { env } from './load-env.config';
-console.log(env);
 
 export const dbConfig: DataSourceOptions = {
   type: 'mysql',

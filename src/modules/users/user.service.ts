@@ -1,6 +1,6 @@
 import { Repository, FindManyOptions } from 'typeorm';
 
-import { AppDataSource } from '@/shared/database/connection';
+import { AppDataSource } from '@/shared/config/database.config';
 import { AppError } from '@/shared/middleware/error-handler.middleware';
 
 import { User } from './entities/user.entity';
