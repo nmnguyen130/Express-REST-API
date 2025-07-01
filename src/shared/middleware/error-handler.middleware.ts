@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import logger from '@/shared/utils/logger';
 
 export class AppError extends Error {
   statusCode: number;
@@ -34,18 +33,18 @@ export const errorHandler = (
 
 // Send error response in development environment
 const sendErrorDev = (err: any, req: Request, res: Response) => {
+  const isApi = req.originalUrl.startsWith('/api');
   // API
-  if (req.originalUrl.startsWith('/api')) {
+  if (isApi) {
     return res.status(err.statusCode).json({
       status: err.status,
-      error: err,
       message: err.message,
       stack: err.stack,
+      error: err,
     });
   }
 
   // RENDERED WEBSITE
-  logger.error('Unexpected error in development:', err);
   return res.status(err.statusCode).render('error', {
     title: 'Something went wrong!',
     msg: err.message,
@@ -54,8 +53,9 @@ const sendErrorDev = (err: any, req: Request, res: Response) => {
 
 // Send error response in production environment
 const sendErrorProd = (err: any, req: Request, res: Response) => {
+  const isApi = req.originalUrl.startsWith('/api');
   // API
-  if (req.originalUrl.startsWith('/api')) {
+  if (isApi) {
     // 1. Operational, trusted error: send message to client
     if (err.isOperational) {
       return res.status(err.statusCode).json({
@@ -64,7 +64,6 @@ const sendErrorProd = (err: any, req: Request, res: Response) => {
       });
     }
     // 2. Programming or other unknown error: don't leak error details
-    logger.error('ERROR', err);
     return res.status(500).json({
       status: 'error',
       message: 'Something went very wrong!',
@@ -72,15 +71,8 @@ const sendErrorProd = (err: any, req: Request, res: Response) => {
   }
 
   // RENDERED WEBSITE
-  if (err.isOperational) {
-    return res.status(err.statusCode).render('error', {
-      title: 'Something went wrong!',
-      msg: err.message,
-    });
-  }
-  logger.error('Unexpected error in production:', err);
   return res.status(err.statusCode).render('error', {
     title: 'Something went wrong!',
-    msg: 'Please try again later.',
+    msg: err.isOperational ? err.message : 'Please try again later.',
   });
 };
