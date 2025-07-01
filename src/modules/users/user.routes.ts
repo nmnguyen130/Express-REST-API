@@ -1,11 +1,7 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 
-import { ErrorCodes } from '@/shared/constants/error-codes';
-import { HttpStatus } from '@/shared/constants/http-status';
 import { validateJoi } from '@/shared/middleware/validation.middleware';
-import { ApiResponse } from '@/shared/utils/api-response';
 import { asyncHandler } from '@/shared/utils/async-handler';
-import { PaginationUtils } from '@/shared/utils/pagination';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,118 +15,58 @@ export class UserRoutes {
 
   constructor() {
     this.router = Router();
-
     const userService = new UserService();
     this.controller = new UserController(userService);
     this.initializeRoutes();
   }
 
-
-
   private initializeRoutes(): void {
     // Get all users without pagination (use with caution for large datasets)
-    this.router.get('/', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-      const users = await this.controller.getAllUsers();
-      res.status(HttpStatus.OK).json(ApiResponse.success(users, 'Users retrieved successfully'));
-    }));
+    this.router.get('/', 
+      asyncHandler((req, res) => this.controller.getAllUsers(req, res))
+    );
 
     // Get all users with pagination (query params)
-    this.router.get('/paginated', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-      const pagination = PaginationUtils.getPaginationParams(req, {
-        defaultLimit: 10,
-        maxLimit: 100
-      });
-      
-      const { data: users, total } = await this.controller.getUsersPaginated(pagination);
-      
-      const paginatedResponse = PaginationUtils.createPaginatedResponse(
-        req,
-        users,
-        total,
-        { defaultLimit: 10, maxLimit: 100 }
-      );
-      
-      res.status(HttpStatus.OK).json(
-        ApiResponse.success(
-          paginatedResponse,
-          'Users retrieved successfully'
-        )
-      );
-    }));
+    this.router.get('/paginated', 
+      asyncHandler((req, res) => this.controller.getUsersPaginated(req, res))
+    );
 
     // Get user by ID
     this.router.get(
       '/:id',
       validateJoi(UserParamsDto, 'params'),
-      asyncHandler(async (req: Request, res: Response): Promise<void> => {
-        const user = await this.controller.getUserById(req);
-        if (!user) {
-          res.status(HttpStatus.NOT_FOUND).json(
-            ApiResponse.error('User not found', ErrorCodes.NOT_FOUND.code)
-          );
-          return;
-        }
-        
-        res.status(HttpStatus.OK).json(ApiResponse.success(user, 'User retrieved successfully'));
-      })
+      asyncHandler((req, res) => this.controller.getUserById(req, res))
     );
 
-    // Create new user
+    // Create a new user
     this.router.post(
       '/',
-      validateJoi(CreateUserDto),
-      asyncHandler(async (req: Request, res: Response): Promise<void> => {
-        // Attach validated data to the request object
-        (req as any).validated = req.body;
-        const user = await this.controller.create(req);
-        res.status(HttpStatus.CREATED).json(
-          ApiResponse.success(user, 'User created successfully')
-        );
+      validateJoi(CreateUserDto, 'body'),
+      asyncHandler((req, res) => {
+        req.validated = req.body;
+        return this.controller.create(req, res);
       })
     );
 
-    // Update user
+    // Update a user
     this.router.put(
       '/:id',
       [
         validateJoi(UserParamsDto, 'params'),
-        validateJoi(UpdateUserDto)
+        validateJoi(UpdateUserDto, 'body')
       ],
-      asyncHandler(async (req: Request, res: Response): Promise<void> => {
-        // Attach validated data to the request object
-        (req as any).validated = req.body;
-        const user = await this.controller.update(req);
-        if (!user) {
-          res.status(HttpStatus.NOT_FOUND).json(
-            ApiResponse.error('User not found', ErrorCodes.NOT_FOUND.code)
-          );
-          return;
-        }
-        
-        res.status(HttpStatus.OK).json(
-          ApiResponse.success(user, 'User updated successfully')
-        );
+      asyncHandler((req, res) => {
+        req.validated = req.body;
+        return this.controller.update(req, res);
       })
     );
 
-    // Delete user
+    // Delete a user
     this.router.delete(
       '/:id',
       validateJoi(UserParamsDto, 'params'),
-      asyncHandler(async (req: Request, res: Response): Promise<void> => {
-        const success = await this.controller.delete(req);
-        if (!success) {
-          res.status(HttpStatus.NOT_FOUND).json(
-            ApiResponse.error('User not found', ErrorCodes.NOT_FOUND.code)
-          );
-          return;
-        }
-        
-        res.status(HttpStatus.OK).json(
-          ApiResponse.success({ deleted: true }, 'User deleted successfully')
-        );
-      })
-    );  
+      asyncHandler((req, res) => this.controller.delete(req, res))
+    );
   }
 }
 
