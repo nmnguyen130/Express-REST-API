@@ -26,18 +26,16 @@ class UserService {
 
   /**
    * Get all users with pagination
-   * @param page Page number (1-based)
-   * @param limit Number of items per page
+   * @param pagination Pagination parameters
    * @param options Additional find options
    */
   public async getUsersPaginated(
-    page: number = 1,
-    limit: number = 10,
+    pagination: { page: number; limit: number; skip: number },
     options: PaginationOptions = {}
   ): Promise<{ data: User[]; total: number }> {
     const [data, total] = await this.userRepository.findAndCount({
-      take: limit,
-      skip: (page - 1) * limit,
+      take: pagination.limit,
+      skip: pagination.skip,
       ...options,
     });
     

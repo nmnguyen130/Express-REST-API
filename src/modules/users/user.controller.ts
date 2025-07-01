@@ -19,8 +19,8 @@ class UserController {
   /**
    * Get all users with pagination
    */
-  public async getUsersPaginated(page: number = 1, limit: number = 10): Promise<{ data: User[]; total: number }> {
-    return this.userService.getUsersPaginated(page, limit);
+  public async getUsersPaginated(pagination: { page: number; limit: number; skip: number }): Promise<{ data: User[]; total: number }> {
+    return this.userService.getUsersPaginated(pagination);
   }
 
   /**

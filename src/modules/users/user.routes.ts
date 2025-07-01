@@ -1,10 +1,11 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 
 import { ErrorCodes } from '@/shared/constants/error-codes';
 import { HttpStatus } from '@/shared/constants/http-status';
 import { validateJoi } from '@/shared/middleware/validation.middleware';
 import { ApiResponse } from '@/shared/utils/api-response';
 import { asyncHandler } from '@/shared/utils/async-handler';
+import { PaginationUtils } from '@/shared/utils/pagination';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,48 +25,7 @@ export class UserRoutes {
     this.initializeRoutes();
   }
 
-  private buildPaginationMeta(
-    page: number,
-    limit: number,
-    total: number
-  ) {
-    const totalPages = Math.ceil(total / limit);
-    return {
-      currentPage: page,
-      itemsPerPage: limit,
-      totalItems: total,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
-    };
-  }
 
-  private buildPaginationLinks(
-    baseUrl: string,
-    page: number,
-    limit: number,
-    total: number,
-    isPathBased: boolean = false
-  ) {
-    const totalPages = Math.ceil(total / limit);
-    
-    const buildUrl = (page: number): string => {
-      if (isPathBased) {
-        return `${baseUrl}/page/${page}/limit/${limit}`;
-      }
-      const url = new URL(baseUrl);
-      url.searchParams.set('page', page.toString());
-      url.searchParams.set('limit', limit.toString());
-      return url.toString();
-    };
-
-    return {
-      first: buildUrl(1),
-      last: buildUrl(totalPages),
-      next: page < totalPages ? buildUrl(page + 1) : null,
-      prev: page > 1 ? buildUrl(page - 1) : null,
-    };
-  }
 
   private initializeRoutes(): void {
     // Get all users without pagination (use with caution for large datasets)
@@ -75,22 +35,27 @@ export class UserRoutes {
     }));
 
     // Get all users with pagination (query params)
-    // Get all users with pagination (query params)
     this.router.get('/paginated', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-      const page = Math.max(1, Number(req.query.page) || 1);
-      const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+      const pagination = PaginationUtils.getPaginationParams(req, {
+        defaultLimit: 10,
+        maxLimit: 100
+      });
       
-      const { data: users, total } = await this.controller.getUsersPaginated(page, limit);
-      const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl || ''}`;
+      const { data: users, total } = await this.controller.getUsersPaginated(pagination);
       
-      const response = ApiResponse.paginated(
+      const paginatedResponse = PaginationUtils.createPaginatedResponse(
+        req,
         users,
-        this.buildPaginationMeta(page, limit, total),
-        this.buildPaginationLinks(baseUrl, page, limit, total),
-        'Users retrieved successfully'
+        total,
+        { defaultLimit: 10, maxLimit: 100 }
       );
       
-      res.status(HttpStatus.OK).json(response);
+      res.status(HttpStatus.OK).json(
+        ApiResponse.success(
+          paginatedResponse,
+          'Users retrieved successfully'
+        )
+      );
     }));
 
     // Get user by ID

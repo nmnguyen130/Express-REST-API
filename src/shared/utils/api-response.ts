@@ -1,7 +1,14 @@
-import { IApiResponse, IPaginatedResponse, IPaginationLinks, IPaginationMeta } from '@/shared/interfaces/api-response.interface';
-
-// Re-export interfaces for convenience
-export * from '@/shared/interfaces/api-response.interface';
+// Response for overall data
+export interface IApiResponse<T = any> {
+  status: 'success' | 'error' | 'fail';
+  message?: string;
+  data?: T;
+  error?: {
+    code?: string | number;
+    message: string;
+    details?: any;
+  };
+}
 
 export class ApiResponse<T = any> {
   /**
@@ -14,30 +21,6 @@ export class ApiResponse<T = any> {
       status: 'success',
       message,
       data,
-    };
-  }
-
-  /**
-   * Creates a paginated API response
-   * @param items Array of items for the current page
-   * @param meta Pagination metadata
-   * @param links Pagination links
-   * @param message Optional success message
-   */
-  static paginated<T>(
-    items: T[],
-    meta: IPaginationMeta,
-    links: IPaginationLinks,
-    message: string = 'Data retrieved successfully'
-  ): IApiResponse<IPaginatedResponse<T>> {
-    return {
-      status: 'success',
-      message,
-      data: {
-        items,
-        meta,
-        links,
-      },
     };
   }
 
