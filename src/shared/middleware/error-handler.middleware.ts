@@ -39,7 +39,6 @@ const sendErrorDev = (err: any, req: Request, res: Response) => {
     return res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
-      stack: err.stack,
       error: err,
     });
   }
@@ -66,7 +65,7 @@ const sendErrorProd = (err: any, req: Request, res: Response) => {
     // 2. Programming or other unknown error: don't leak error details
     return res.status(500).json({
       status: 'error',
-      message: 'Something went very wrong!',
+      message: 'Something went wrong!'
     });
   }
 

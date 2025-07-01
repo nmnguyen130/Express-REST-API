@@ -174,7 +174,7 @@ class Logger {
 const logger = new Logger({
     timestamp: true,
     consoleOutput: true,
-    fileOutput: false,
+    fileOutput: false, // Set to true to enable file logging
     logDir: 'logs',
     level: process.env.NODE_ENV === 'production' ? 'info' : 'debug'
 });
